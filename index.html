@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌸 GAW Spring Wine Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Lato:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blush: #F2C4CE;
+    --petal: #F7D9E3;
+    --sage: #B5C9A8;
+    --lavender: #C8B8D8;
+    --cream: #FEF6EE;
+    --gold: #D4A843;
+    --dusty-rose: #C9808F;
+    --deep-sage: #7A9A6A;
+    --text: #4A3540;
+    --light-text: #8A7080;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Lato', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Floral background decoration */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image:
+      radial-gradient(ellipse at 10% 20%, rgba(242,196,206,0.35) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(200,184,216,0.3) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 10%, rgba(181,201,168,0.25) 0%, transparent 40%),
+      radial-gradient(ellipse at 20% 90%, rgba(247,217,227,0.4) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 30px 20px 60px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---- SCREEN MANAGEMENT ---- */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ---- HEADER ---- */
+  .quiz-header {
+    text-align: center;
+    margin-bottom: 40px;
+    animation: fadeDown 0.7s ease both;
+  }
+  .quiz-header .emoji-row {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    letter-spacing: 6px;
+  }
+  .quiz-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.6rem;
+    color: var(--dusty-rose);
+    line-height: 1.2;
+    margin-bottom: 6px;
+  }
+  .quiz-header h1 em {
+    color: var(--deep-sage);
+    font-style: italic;
+  }
+  .quiz-header p {
+    color: var(--light-text);
+    font-size: 0.95rem;
+    letter-spacing: 0.04em;
+  }
+
+  /* ---- FLOWER DIVIDER ---- */
+  .divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 24px 0;
+    color: var(--blush);
+    font-size: 1rem;
+  }
+  .divider::before, .divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--blush), transparent);
+  }
+
+  /* ---- CARD ---- */
+  .card {
+    background: rgba(255,255,255,0.82);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 36px 40px;
+    box-shadow: 0 4px 30px rgba(201,128,143,0.12), 0 1px 4px rgba(0,0,0,0.06);
+    border: 1px solid rgba(242,196,206,0.4);
+    animation: fadeUp 0.5s ease both;
+  }
+
+  /* ---- NAME SCREEN ---- */
+  .name-intro {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .name-intro .big-flower { font-size: 3.5rem; margin-bottom: 12px; }
+  .name-intro h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem;
+    color: var(--dusty-rose);
+    margin-bottom: 8px;
+  }
+  .name-intro p { color: var(--light-text); line-height: 1.6; }
+
+  .name-input-wrap { margin: 24px 0 28px; }
+  .name-input-wrap label {
+    display: block;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--light-text);
+    margin-bottom: 8px;
+  }
+  .name-input-wrap input {
+    width: 100%;
+    padding: 14px 18px;
+    border: 2px solid var(--blush);
+    border-radius: 12px;
+    font-family: 'Lato', sans-serif;
+    font-size: 1rem;
+    color: var(--text);
+    background: rgba(255,255,255,0.9);
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+  }
+  .name-input-wrap input:focus {
+    border-color: var(--dusty-rose);
+    box-shadow: 0 0 0 3px rgba(201,128,143,0.15);
+  }
+
+  /* ---- BUTTONS ---- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 32px;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+  }
+  .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+  .btn:active { transform: translateY(0); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--dusty-rose), #b56475);
+    color: white;
+    box-shadow: 0 4px 18px rgba(201,128,143,0.4);
+  }
+  .btn-sage {
+    background: linear-gradient(135deg, var(--deep-sage), #5e8050);
+    color: white;
+    box-shadow: 0 4px 18px rgba(122,154,106,0.4);
+  }
+  .btn-outline {
+    background: transparent;
+    border: 2px solid var(--blush);
+    color: var(--dusty-rose);
+  }
+  .btn-full { width: 100%; justify-content: center; }
+
+  /* ---- PROGRESS ---- */
+  .progress-bar-wrap {
+    margin-bottom: 28px;
+  }
+  .progress-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.82rem;
+    color: var(--light-text);
+    margin-bottom: 8px;
+  }
+  .progress-track {
+    height: 8px;
+    background: rgba(242,196,206,0.4);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(to right, var(--blush), var(--dusty-rose));
+    border-radius: 10px;
+    transition: width 0.5s cubic-bezier(.4,0,.2,1);
+  }
+
+  /* ---- QUESTION ---- */
+  .question-number {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--light-text);
+    margin-bottom: 10px;
+  }
+  .question-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    color: var(--text);
+    line-height: 1.55;
+    margin-bottom: 28px;
+  }
+
+  /* ---- OPTIONS ---- */
+  .options-grid {
+    display: grid;
+    gap: 12px;
+  }
+  .option-btn {
+    width: 100%;
+    text-align: left;
+    padding: 16px 20px;
+    border: 2px solid rgba(242,196,206,0.5);
+    border-radius: 14px;
+    background: rgba(255,255,255,0.7);
+    font-family: 'Lato', sans-serif;
+    font-size: 0.95rem;
+    color: var(--text);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .option-btn:hover:not(:disabled) {
+    border-color: var(--dusty-rose);
+    background: rgba(247,217,227,0.5);
+    transform: translateX(4px);
+  }
+  .option-letter {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--petal);
+    color: var(--dusty-rose);
+    font-weight: 600;
+    font-size: 0.85rem;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.2s, color 0.2s;
+  }
+  .option-btn.correct {
+    border-color: var(--deep-sage);
+    background: rgba(181,201,168,0.35);
+  }
+  .option-btn.correct .option-letter {
+    background: var(--deep-sage);
+    color: white;
+  }
+  .option-btn.wrong {
+    border-color: var(--dusty-rose);
+    background: rgba(242,196,206,0.3);
+    opacity: 0.7;
+  }
+  .option-btn.wrong .option-letter {
+    background: var(--dusty-rose);
+    color: white;
+  }
+  .option-btn:disabled { cursor: default; }
+
+  /* ---- FEEDBACK ---- */
+  .feedback-box {
+    margin-top: 18px;
+    padding: 14px 18px;
+    border-radius: 12px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    display: none;
+  }
+  .feedback-box.show { display: block; animation: fadeUp 0.3s ease both; }
+  .feedback-box.correct-fb {
+    background: rgba(181,201,168,0.3);
+    border-left: 3px solid var(--deep-sage);
+    color: #4a6b40;
+  }
+  .feedback-box.wrong-fb {
+    background: rgba(242,196,206,0.4);
+    border-left: 3px solid var(--dusty-rose);
+    color: #8a4050;
+  }
+
+  .next-btn-wrap {
+    margin-top: 24px;
+    text-align: right;
+  }
+
+  /* ---- SCORE SCREEN ---- */
+  .score-display {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .score-circle {
+    width: 130px; height: 130px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--blush), var(--lavender));
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    margin: 0 auto 20px;
+    box-shadow: 0 8px 30px rgba(200,184,216,0.4);
+  }
+  .score-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem;
+    font-weight: 600;
+    color: white;
+    line-height: 1;
+  }
+  .score-total { font-size: 0.85rem; color: rgba(255,255,255,0.8); }
+  .score-message {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--dusty-rose);
+    margin-bottom: 8px;
+  }
+  .score-sub { color: var(--light-text); font-size: 0.95rem; }
+
+  .score-actions {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    margin-top: 28px;
+    flex-wrap: wrap;
+  }
+
+  /* ---- LEADERBOARD ---- */
+  .leaderboard-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .leaderboard-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    color: var(--dusty-rose);
+    margin-bottom: 6px;
+  }
+  .leaderboard-header p { color: var(--light-text); font-size: 0.9rem; }
+
+  /* Chart */
+  .chart-wrap {
+    margin: 24px 0 32px;
+  }
+  .chart-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+    height: 180px;
+    padding: 0 4px 0;
+  }
+  .chart-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+  }
+  .chart-bar-outer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 160px;
+  }
+  .chart-bar {
+    width: 100%;
+    border-radius: 8px 8px 0 0;
+    transition: height 1s cubic-bezier(.4,0,.2,1);
+    position: relative;
+    min-height: 4px;
+  }
+  .chart-score-label {
+    position: absolute;
+    top: -22px;
+    left: 50%; transform: translateX(-50%);
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text);
+    white-space: nowrap;
+  }
+  .chart-name {
+    font-size: 0.72rem;
+    color: var(--light-text);
+    text-align: center;
+    word-break: break-word;
+    max-width: 60px;
+    line-height: 1.3;
+  }
+  .chart-axis {
+    height: 2px;
+    background: var(--blush);
+    margin-bottom: 6px;
+    border-radius: 1px;
+  }
+
+  /* Table */
+  .leaderboard-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  .leaderboard-table th {
+    text-align: left;
+    font-size: 0.78rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--light-text);
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--blush);
+  }
+  .leaderboard-table td {
+    padding: 12px 12px;
+    border-bottom: 1px solid rgba(242,196,206,0.3);
+    font-size: 0.93rem;
+  }
+  .leaderboard-table tr:last-child td { border-bottom: none; }
+  .rank-badge {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; font-weight: 700;
+  }
+  .rank-1 { background: #FFD700; color: #7A5C00; }
+  .rank-2 { background: #C0C0C0; color: #555; }
+  .rank-3 { background: #CD7F32; color: white; }
+  .rank-other { background: var(--petal); color: var(--light-text); }
+
+  .score-pct {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+  }
+  .pct-high { background: rgba(181,201,168,0.4); color: var(--deep-sage); }
+  .pct-mid  { background: rgba(242,196,206,0.5); color: var(--dusty-rose); }
+  .pct-low  { background: rgba(200,184,216,0.4); color: #7a6a8a; }
+
+  .lb-actions {
+    margin-top: 28px;
+    text-align: center;
+  }
+
+  /* Decorative flowers */
+  .deco-flowers {
+    pointer-events: none;
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .deco-flower {
+    position: absolute;
+    font-size: 1.6rem;
+    opacity: 0.18;
+    animation: floatFlower linear infinite;
+    user-select: none;
+  }
+
+  @keyframes floatFlower {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0.18; }
+    50% { opacity: 0.12; }
+    100% { transform: translateY(-30px) rotate(15deg); opacity: 0.18; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-15px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes popIn {
+    0%   { transform: scale(0.7); opacity: 0; }
+    80%  { transform: scale(1.05); }
+    100% { transform: scale(1); opacity: 1; }
+  }
+
+  .pop { animation: popIn 0.5s cubic-bezier(.4,0,.2,1) both; }
+
+  /* Petal confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    border-radius: 50% 0 50% 0;
+    pointer-events: none;
+    animation: confettiFall 2.5s ease-in forwards;
+    z-index: 999;
+  }
+  @keyframes confettiFall {
+    0%   { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 30px;
+    color: var(--light-text);
+    font-style: italic;
+  }
+
+  @media (max-width: 520px) {
+    .card { padding: 26px 20px; }
+    .quiz-header h1 { font-size: 1.9rem; }
+    .question-text { font-size: 1.15rem; }
+    .score-actions { flex-direction: column; align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="deco-flowers" id="decoFlowers"></div>
+
+<div class="container">
+  <div class="quiz-header">
+    <div class="emoji-row">🌸 🍷 🌷 🍇 🌼</div>
+    <h1>GAW Spring<br><em>Wine Quiz</em></h1>
+    <p>A little knowledge, a lot of fun</p>
+  </div>
+
+  <!-- SCREEN 1: NAME ENTRY -->
+  <div class="screen active card" id="screen-name">
+    <div class="name-intro">
+      <div class="big-flower">🌸</div>
+      <h2>Welcome to the Quiz!</h2>
+      <p>Spring is in the air — and so is wine trivia. Enter your name to get started. Your score will be added to the team leaderboard automatically.</p>
+    </div>
+    <div class="divider">✿</div>
+    <div class="name-input-wrap">
+      <label for="playerName">Your Name</label>
+      <input type="text" id="playerName" placeholder="e.g. Sarah" maxlength="30" autocomplete="off">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="startQuiz()">
+      Start Quiz 🌷
+    </button>
+    <div style="margin-top: 14px; text-align: center;">
+      <button class="btn btn-outline" onclick="showScreen('screen-leaderboard'); renderLeaderboard();">
+        View Leaderboard 🏅
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: QUIZ -->
+  <div class="screen card" id="screen-quiz">
+    <div class="progress-bar-wrap">
+      <div class="progress-meta">
+        <span id="progressLabel">Question 1 of 10</span>
+        <span id="scoreLabel">Score: 0</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progressFill" style="width:10%"></div>
+      </div>
+    </div>
+    <div class="question-number" id="questionNumber">Question 1</div>
+    <div class="question-text" id="questionText"></div>
+    <div class="options-grid" id="optionsGrid"></div>
+    <div class="feedback-box" id="feedbackBox"></div>
+    <div class="next-btn-wrap">
+      <button class="btn btn-primary" id="nextBtn" style="display:none" onclick="nextQuestion()">
+        Next <span>→</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 3: SCORE -->
+  <div class="screen card" id="screen-score">
+    <div class="score-display">
+      <div class="score-circle pop" id="scoreCircle">
+        <div class="score-number" id="finalScore">0</div>
+        <div class="score-total">out of 10</div>
+      </div>
+      <div class="score-message" id="scoreMessage"></div>
+      <div class="score-sub" id="scoreSub"></div>
+    </div>
+    <div class="divider">✿</div>
+    <div class="score-actions">
+      <button class="btn btn-primary" onclick="showScreen('screen-leaderboard'); renderLeaderboard();">
+        See Leaderboard 🏅
+      </button>
+      <button class="btn btn-outline" onclick="restartQuiz()">
+        Try Again 🔄
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN 4: LEADERBOARD -->
+  <div class="screen card" id="screen-leaderboard">
+    <div class="leaderboard-header">
+      <div style="font-size:2rem; margin-bottom:8px;">🏅 🌸 🍷</div>
+      <h2>Team Leaderboard</h2>
+      <p id="lbSubtitle">Everyone who's taken the quiz so far</p>
+    </div>
+    <div class="chart-wrap">
+      <div class="chart-bars" id="chartBars"></div>
+      <div class="chart-axis"></div>
+    </div>
+    <div class="divider">✿</div>
+    <table class="leaderboard-table" id="lbTable">
+      <thead>
+        <tr>
+          <th>Rank</th>
+          <th>Name</th>
+          <th>Score</th>
+          <th>Result</th>
+        </tr>
+      </thead>
+      <tbody id="lbBody"></tbody>
+    </table>
+    <div class="lb-actions">
+      <button class="btn btn-sage" onclick="showScreen('screen-name')">
+        Back to Quiz 🌷
+      </button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const STORAGE_KEY = 'gaw_spring_quiz_scores_v1';
+
+const questions = [
+  {
+    q: "Which grape variety is the primary ingredient in Champagne?",
+    options: ["Pinot Noir", "Chardonnay", "Pinot Meunier", "All three can be used"],
+    answer: 3,
+    fact: "Champagne is typically a blend of Chardonnay, Pinot Noir, and Pinot Meunier — though single-variety versions do exist!"
+  },
+  {
+    q: "In wine tasting, what does the term 'terroir' refer to?",
+    options: ["The colour of the wine", "The temperature it's served at", "The environment in which grapes are grown", "The age of the vine"],
+    answer: 2,
+    fact: "Terroir encompasses soil, climate, topography, and local practices — essentially the 'sense of place' a wine carries."
+  },
+  {
+    q: "Which country is the world's largest producer of wine by volume?",
+    options: ["France", "Spain", "Italy", "USA"],
+    answer: 2,
+    fact: "Italy consistently battles with France and Spain for the top spot, but frequently leads in volume. Go Italia! 🇮🇹"
+  },
+  {
+    q: "What does a 'rosé' wine get its pink colour from?",
+    options: ["Mixing red and white wine together", "Brief skin contact with red grapes", "Adding red grape juice to white wine", "A special pink grape variety"],
+    answer: 1,
+    fact: "Rosé gets its colour from short maceration — the grape skins are left in contact with the juice for just a few hours."
+  },
+  {
+    q: "Which white grape variety is known for producing wines with notes of gooseberry and cut grass?",
+    options: ["Riesling", "Chardonnay", "Sauvignon Blanc", "Viognier"],
+    answer: 2,
+    fact: "Sauvignon Blanc is famous for those fresh, herbaceous, zingy characters — especially from New Zealand's Marlborough region."
+  },
+  {
+    q: "A wine described as 'off-dry' is best described as…",
+    options: ["Slightly sweet", "Very dry and tannic", "Sparkling", "Fortified"],
+    answer: 0,
+    fact: "Off-dry means there is a small amount of residual sugar — noticeable but not as sweet as a dessert wine."
+  },
+  {
+    q: "What is 'tannin' in wine?",
+    options: ["The fruity aroma compounds", "A preservative added during bottling", "A natural compound that creates a drying sensation", "The sugar left after fermentation"],
+    answer: 2,
+    fact: "Tannins come from grape skins, seeds and stems — and from oak barrels. They create that dry, grippy feeling in reds like Cabernet Sauvignon."
+  },
+  {
+    q: "Prosecco is primarily produced in which Italian region?",
+    options: ["Tuscany", "Veneto", "Piedmont", "Sicily"],
+    answer: 1,
+    fact: "Prosecco DOC and DOCG wines come from the Veneto and Friuli Venezia Giulia regions in northeast Italy. 🇮🇹"
+  },
+  {
+    q: "Which term describes a wine that is stored in the bottle for several years before release?",
+    options: ["Nouveau", "Reserva / Riserva", "Primeur", "Naturel"],
+    answer: 1,
+    fact: "Reserva, Réserve, and Riserva all indicate extended ageing — the exact requirements vary by country and region."
+  },
+  {
+    q: "What happens to wine acidity as grapes ripen further in warm climates?",
+    options: ["Acidity increases", "Acidity stays the same", "Acidity decreases", "Acidity turns into sugar"],
+    answer: 2,
+    fact: "Warmer climates generally produce riper, lower-acid grapes. That's why cool-climate wines (like English Sparkling!) tend to have vibrant, refreshing acidity."
+  }
+];
+
+let currentQ = 0;
+let score = 0;
+let playerName = '';
+let answered = false;
+
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startQuiz() {
+  const nameInput = document.getElementById('playerName').value.trim();
+  if (!nameInput) {
+    document.getElementById('playerName').focus();
+    document.getElementById('playerName').style.borderColor = '#e07080';
+    setTimeout(() => document.getElementById('playerName').style.borderColor = '', 1500);
+    return;
+  }
+  playerName = nameInput;
+  currentQ = 0;
+  score = 0;
+  answered = false;
+  showScreen('screen-quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = questions[currentQ];
+  answered = false;
+
+  document.getElementById('questionNumber').textContent = `Question ${currentQ + 1}`;
+  document.getElementById('questionText').textContent = q.q;
+  document.getElementById('progressLabel').textContent = `Question ${currentQ + 1} of ${questions.length}`;
+  document.getElementById('scoreLabel').textContent = `Score: ${score}`;
+  document.getElementById('progressFill').style.width = `${((currentQ) / questions.length) * 100}%`;
+
+  const feedbackBox = document.getElementById('feedbackBox');
+  feedbackBox.className = 'feedback-box';
+  feedbackBox.textContent = '';
+
+  document.getElementById('nextBtn').style.display = 'none';
+
+  const grid = document.getElementById('optionsGrid');
+  grid.innerHTML = '';
+  const letters = ['A', 'B', 'C', 'D'];
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="option-letter">${letters[i]}</span><span>${opt}</span>`;
+    btn.onclick = () => selectOption(i, btn);
+    grid.appendChild(btn);
+  });
+}
+
+function selectOption(index, btn) {
+  if (answered) return;
+  answered = true;
+  const q = questions[currentQ];
+  const allBtns = document.querySelectorAll('.option-btn');
+  allBtns.forEach(b => b.disabled = true);
+
+  const feedbackBox = document.getElementById('feedbackBox');
+
+  if (index === q.answer) {
+    score++;
+    btn.classList.add('correct');
+    feedbackBox.className = 'feedback-box correct-fb show';
+    feedbackBox.innerHTML = `✅ <strong>Correct!</strong> ${q.fact}`;
+    launchPetals();
+  } else {
+    btn.classList.add('wrong');
+    allBtns[q.answer].classList.add('correct');
+    feedbackBox.className = 'feedback-box wrong-fb show';
+    feedbackBox.innerHTML = `🌷 <strong>Not quite!</strong> ${q.fact}`;
+  }
+
+  document.getElementById('scoreLabel').textContent = `Score: ${score}`;
+  document.getElementById('nextBtn').style.display = 'inline-flex';
+  document.getElementById('nextBtn').textContent = currentQ === questions.length - 1 ? 'See My Score 🌸' : 'Next →';
+}
+
+function nextQuestion() {
+  currentQ++;
+  if (currentQ >= questions.length) {
+    finishQuiz();
+  } else {
+    renderQuestion();
+  }
+}
+
+function finishQuiz() {
+  saveScore(playerName, score);
+  const pct = Math.round((score / questions.length) * 100);
+  document.getElementById('finalScore').textContent = score;
+
+  let msg, sub;
+  if (pct >= 90) { msg = "Sommelier in the making! 🍾"; sub = "Outstanding result — you clearly know your grapes."; }
+  else if (pct >= 70) { msg = "A solid pour! 🌸"; sub = "Well done — you've got a great nose for wine trivia."; }
+  else if (pct >= 50) { msg = "Nicely swirled! 🌷"; sub = "A respectable result. Keep exploring the vineyards!"; }
+  else { msg = "More tastings required! 🍇"; sub = "Don't worry — every sip is a learning experience."; }
+
+  document.getElementById('scoreMessage').textContent = msg;
+  document.getElementById('scoreSub').textContent = sub;
+  showScreen('screen-score');
+  launchPetals(30);
+}
+
+function restartQuiz() {
+  document.getElementById('playerName').value = '';
+  showScreen('screen-name');
+}
+
+/* ---- STORAGE ---- */
+function saveScore(name, sc) {
+  const scores = getScores();
+  // If name already exists, update only if higher
+  const existing = scores.findIndex(s => s.name.toLowerCase() === name.toLowerCase());
+  const entry = { name, score: sc, pct: Math.round((sc / questions.length) * 100), date: new Date().toLocaleDateString('en-GB') };
+  if (existing !== -1) {
+    if (sc >= scores[existing].score) scores[existing] = entry;
+  } else {
+    scores.push(entry);
+  }
+  scores.sort((a, b) => b.score - a.score);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(scores));
+}
+
+function getScores() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+  } catch { return []; }
+}
+
+/* ---- LEADERBOARD ---- */
+function renderLeaderboard() {
+  const scores = getScores();
+  const subtitle = document.getElementById('lbSubtitle');
+  subtitle.textContent = scores.length > 0
+    ? `${scores.length} team member${scores.length > 1 ? 's' : ''} have taken the quiz`
+    : 'No scores yet — be the first!';
+
+  renderChart(scores);
+  renderTable(scores);
+}
+
+function renderChart(scores) {
+  const wrap = document.getElementById('chartBars');
+  wrap.innerHTML = '';
+  if (scores.length === 0) {
+    wrap.innerHTML = '<div class="empty-state" style="width:100%">No scores yet 🌱</div>';
+    return;
+  }
+  const palette = [
+    'linear-gradient(180deg, #F2C4CE, #C9808F)',
+    'linear-gradient(180deg, #C8B8D8, #9A7FB5)',
+    'linear-gradient(180deg, #B5C9A8, #7A9A6A)',
+    'linear-gradient(180deg, #F7D9E3, #E8A5B5)',
+    'linear-gradient(180deg, #D4C4E0, #A08AB8)',
+    'linear-gradient(180deg, #C9D9BE, #8DAA7A)',
+    'linear-gradient(180deg, #EBC4CE, #C07885)',
+    'linear-gradient(180deg, #BEC8DA, #8090B0)',
+  ];
+  const maxScore = questions.length;
+  const display = scores.slice(0, 8);
+  display.forEach((s, i) => {
+    const heightPct = (s.score / maxScore) * 100;
+    const col = document.createElement('div');
+    col.className = 'chart-col';
+    col.innerHTML = `
+      <div class="chart-bar-outer">
+        <div class="chart-bar" style="height:${heightPct}%; background:${palette[i % palette.length]};">
+          <span class="chart-score-label">${s.score}</span>
+        </div>
+      </div>
+      <div class="chart-name">${s.name}</div>
+    `;
+    wrap.appendChild(col);
+    // Animate in
+    const bar = col.querySelector('.chart-bar');
+    bar.style.height = '0%';
+    setTimeout(() => { bar.style.height = heightPct + '%'; }, 100 + i * 80);
+  });
+}
+
+function renderTable(scores) {
+  const tbody = document.getElementById('lbBody');
+  tbody.innerHTML = '';
+  if (scores.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Be the first to take the quiz! 🌸</td></tr>';
+    return;
+  }
+  scores.forEach((s, i) => {
+    const rank = i + 1;
+    let badgeClass = rank <= 3 ? `rank-${rank}` : 'rank-other';
+    let pctClass = s.pct >= 70 ? 'pct-high' : s.pct >= 50 ? 'pct-mid' : 'pct-low';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td><span class="rank-badge ${badgeClass}">${rank <= 3 ? ['🥇','🥈','🥉'][rank-1] : rank}</span></td>
+      <td>${escapeHtml(s.name)}</td>
+      <td><strong>${s.score}</strong> / 10</td>
+      <td><span class="score-pct ${pctClass}">${s.pct}%</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+function escapeHtml(str) {
+  return str.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+/* ---- CONFETTI ---- */
+function launchPetals(count = 14) {
+  const colors = ['#F2C4CE','#C8B8D8','#B5C9A8','#F7D9E3','#D4A843','#FFB6C8'];
+  for (let i = 0; i < count; i++) {
+    setTimeout(() => {
+      const el = document.createElement('div');
+      el.className = 'confetti-piece';
+      el.style.left = Math.random() * 100 + 'vw';
+      el.style.background = colors[Math.floor(Math.random() * colors.length)];
+      el.style.animationDuration = (1.8 + Math.random() * 1.5) + 's';
+      el.style.animationDelay = (Math.random() * 0.5) + 's';
+      el.style.width = el.style.height = (8 + Math.random() * 8) + 'px';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 4000);
+    }, i * 60);
+  }
+}
+
+/* ---- DECORATIVE FLOWERS ---- */
+(function() {
+  const emojis = ['🌸','🌷','🌼','🌺','🍃','🌿'];
+  const wrap = document.getElementById('decoFlowers');
+  for (let i = 0; i < 18; i++) {
+    const el = document.createElement('div');
+    el.className = 'deco-flower';
+    el.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    el.style.left = Math.random() * 100 + '%';
+    el.style.top = Math.random() * 100 + '%';
+    el.style.fontSize = (1 + Math.random() * 1.8) + 'rem';
+    el.style.animationDuration = (5 + Math.random() * 8) + 's';
+    el.style.animationDelay = (Math.random() * 5) + 's';
+    wrap.appendChild(el);
+  }
+})();
+</script>
+</body>
+</html>
